@@ -1,0 +1,15 @@
+terraform {
+  required_providers {
+    azurerm = {
+      source  = "hashicorp/azurerm"
+      version = "{{ azurerm_provider_version }}"
+    }
+  }
+}
+
+# Auth comes from ARM_* environment variables exported by the GitHub Actions
+# OIDC login step (azure/login@v2) — no subscription/tenant IDs are embedded
+# in this template, so it stays environment-agnostic and secret-free.
+provider "azurerm" {
+  features {}
+}

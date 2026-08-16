@@ -1,0 +1,17 @@
+resource_group    = "{{ resource_group }}"
+region            = "{{ region }}"
+sql_server_name   = "{{ sql_server_name }}"
+database_name     = "{{ database_name }}"
+edition           = "{{ edition }}"
+service_objective = "{{ service_objective }}"
+license_type      = "{{ license_type }}"
+environment_tag   = "{{ environment_tag }}"
+max_size_gb       = {{ max_size_gb }}
+backup_redundancy = "{{ backup_redundancy }}"
+{% if admin_login %}
+sql_admin_login   = "{{ admin_login }}"
+{% endif %}
+firewall_rules    = {{ firewall_rules | default([]) | tojson }}
+
+# sql_admin_password is intentionally NOT set here — it's sensitive. Supply
+# it via the TF_VAR_sql_admin_password environment variable at apply time.

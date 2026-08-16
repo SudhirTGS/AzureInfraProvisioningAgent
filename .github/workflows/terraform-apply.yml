@@ -1,0 +1,62 @@
+name: Terraform Apply
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "infra/**"
+
+permissions:
+  id-token: write # required for Azure OIDC login
+  contents: read
+
+concurrency:
+  group: terraform-apply
+  cancel-in-progress: false # never cancel an in-flight apply
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    # This environment is the actual human-approval gate: configure it once
+    # in GitHub repo Settings > Environments with required reviewers. Without
+    # that one-time setup, this job runs unattended on every merge.
+    environment: production
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2 # need the previous commit to diff changed paths
+
+      - name: Determine changed infra directory
+        id: tfdir
+        run: |
+          CHANGED_DIR=$(git diff --name-only HEAD~1 HEAD \
+            | grep '^infra/' | head -n 1 | xargs -r dirname)
+          if [ -z "$CHANGED_DIR" ]; then
+            echo "No infra/** changes detected in this push." >&2
+            exit 1
+          fi
+          echo "dir=$CHANGED_DIR" >> "$GITHUB_OUTPUT"
+
+      - name: Azure login (OIDC)
+        uses: azure/login@v2
+        with:
+          client-id: ${{ vars.AZURE_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: Terraform init
+        working-directory: ${{ steps.tfdir.outputs.dir }}
+        run: terraform init -input=false
+
+      - name: Terraform apply
+        working-directory: ${{ steps.tfdir.outputs.dir }}
+        # -auto-approve is acceptable here specifically because the
+        # `environment: production` protection rule above already forces a
+        # manual approval click before this job starts running.
+        env:
+          TF_VAR_sql_admin_password: ${{ secrets.SQL_ADMIN_PASSWORD }}
+        run: terraform apply -input=false -auto-approve

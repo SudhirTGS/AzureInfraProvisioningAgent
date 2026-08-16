@@ -1,0 +1,12 @@
+[project]
+name = "azure-infra-provisioning-agent"
+version = "0.1.0"
+description = "Conversational agent that collects Azure provisioning requirements and hands off to a deterministic Terraform + GitHub PR pipeline."
+requires-python = ">=3.11"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"

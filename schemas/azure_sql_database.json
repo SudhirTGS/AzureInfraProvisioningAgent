@@ -1,0 +1,62 @@
+{
+  "resource_type": "azure_sql_database",
+  "required_fields": {
+    "resource_group": {
+      "type": "string",
+      "description": "Existing or new resource group name"
+    },
+    "region": {
+      "type": "string",
+      "enum": ["eastus", "eastus2", "westus2", "centralus"]
+    },
+    "sql_server_name": {
+      "type": "string",
+      "pattern": "^[a-z0-9-]{3,63}$"
+    },
+    "database_name": {
+      "type": "string",
+      "pattern": "^[a-zA-Z0-9_-]{1,128}$"
+    },
+    "edition": {
+      "type": "string",
+      "enum": ["Basic", "Standard", "GeneralPurpose", "BusinessCritical", "Hyperscale"]
+    },
+    "service_objective": {
+      "type": "string",
+      "description": "Depends on edition, e.g. 'S0'-'S12' for Standard, 'GP_Gen5_2' for GeneralPurpose, 'BC_Gen5_2' for BusinessCritical, 'HS_Gen5_2' for Hyperscale, 'Basic' for Basic.",
+      "depends_on": "edition"
+    },
+    "license_type": {
+      "type": "string",
+      "enum": ["LicenseIncluded", "BasePrice"]
+    },
+    "environment_tag": {
+      "type": "string",
+      "enum": ["dev", "test", "staging", "prod"]
+    }
+  },
+  "optional_fields": {
+    "max_size_gb": {
+      "type": "integer",
+      "default": 32
+    },
+    "backup_redundancy": {
+      "type": "string",
+      "enum": ["Local", "Zone", "Geo"],
+      "default": "Local"
+    },
+    "admin_login": {
+      "type": "string",
+      "description": "SQL authentication admin username for the server. Defaults to 'sqladmin' if not specified. The password is never collected via chat — supplied separately at terraform apply time."
+    },
+    "firewall_rules": {
+      "type": "array"
+    }
+  },
+  "notes": [
+    "service_objective valid values depend on edition — validate together",
+    "license_type affects cost significantly — always confirm explicitly",
+    "environment_tag is required for cost tracking / policy compliance",
+    "max_size_gb is capped by edition (e.g. Basic supports at most 2 GB) — if edition is Basic, confirm max_size_gb explicitly rather than relying on the general 32 GB default"
+  ]
+}
