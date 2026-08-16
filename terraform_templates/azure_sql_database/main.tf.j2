@@ -33,10 +33,10 @@ resource "azurerm_mssql_database" "this" {
   # "GP_Gen5_4", "S0", "BC_Gen5_2", "HS_Gen5_2", "Basic"). `edition` is kept
   # only as a tag for human readability — the sku_name prefix already
   # encodes it.
-  sku_name                            = var.service_objective
-  max_size_gb                         = var.max_size_gb
-  license_type                        = var.license_type
-  requested_backup_storage_redundancy = var.backup_redundancy
+  sku_name              = var.service_objective
+  max_size_gb           = var.max_size_gb
+  license_type          = var.license_type
+  storage_account_type  = var.backup_redundancy
 
   tags = merge(local.common_tags, { edition = var.edition })
 }
