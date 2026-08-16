@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="38" height="38" viewBox="0 0 38 38" fill="none" role="img" aria-label="Azure Infra Provisioning Agent mark">
+  <path d="M19 3 L33 11 V27 L19 35 L5 27 V11 Z" stroke="currentColor" stroke-width="1.6"/>
+  <circle cx="19" cy="13" r="2.6" fill="currentColor"/>
+  <circle cx="12" cy="24" r="2.6" fill="none" stroke="currentColor" stroke-width="1.6"/>
+  <circle cx="26" cy="24" r="2.6" fill="none" stroke="currentColor" stroke-width="1.6"/>
+  <path d="M19 15.6 L12 21.6 M19 15.6 L26 21.6 M13.8 24 H24.2" stroke="currentColor" stroke-width="1.3"/>
+</svg>

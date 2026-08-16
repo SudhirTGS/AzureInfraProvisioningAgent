@@ -45,8 +45,9 @@ uvicorn app.main:app --reload
 ```
 
 Then either:
-- open `http://127.0.0.1:8000/docs` and drive `POST /chat` from Swagger, or
-- run `python cli.py` for a faster terminal REPL.
+- open `http://127.0.0.1:8000/docs` and drive `POST /chat` from Swagger,
+- run `python cli.py` for a faster terminal REPL, or
+- run the Streamlit UI (see below) for a proper chat interface.
 
 `SUBMIT_REQUIREMENTS_MODE` in `.env` controls how far a confirmed submission goes:
 
@@ -61,6 +62,33 @@ Then either:
 ```bash
 pytest
 ```
+
+## Frontend (Streamlit)
+
+A chat UI at `frontend/streamlit_app.py`, styled to match the accelerator's
+"blueprint" visual identity. It's a thin client — every reply and every
+follow-up suggestion comes from the FastAPI `/chat` endpoint; the frontend
+holds no business logic of its own.
+
+```bash
+pip install -r frontend/requirements.txt
+uvicorn app.main:app --reload            # backend, in one terminal — http://127.0.0.1:8000
+cd frontend && streamlit run streamlit_app.py   # UI, in another — http://127.0.0.1:8501
+```
+
+Open `http://127.0.0.1:8501` in your browser. The backend URL is configurable from
+the app's sidebar if you need to point it somewhere other than the default.
+
+The backend URL is configurable from the sidebar (defaults to
+`http://127.0.0.1:8000`), so the same UI can point at a deployed backend once
+one exists. It's a separate deployable from the FastAPI app — its own
+`frontend/requirements.txt` and `frontend/.streamlit/config.toml` — so it can
+ship to its own Azure Web App independently.
+
+Follow-up suggestion chips (`suggested_followups` in the `/chat` response,
+see `app/llm/followups.py`) are derived deterministically from the last
+`validate_requirements`/`submit_requirements` tool result already in the
+conversation — never from an extra LLM call.
 
 ## One-time Azure/GitHub setup (manual — not scripted by this app)
 
@@ -120,11 +148,15 @@ app/
   main.py             FastAPI app: POST /chat, GET /healthz
   config.py           Settings (pydantic-settings) — the only module that reads env vars
   session_store.py    in-memory dict[session_id -> messages]
-  llm/                system prompt, tool schemas, OpenAI client, tool-calling loop
+  llm/                system prompt, tool schemas, OpenAI client, tool-calling loop, followups
   tools/               schema_loader, validators, dispatch registry
   submission/          terraform_renderer (Jinja2), github_client (PyGithub), submit_handler
 schemas/                one JSON file per supported resource type
 terraform_templates/    one Jinja2 template folder per resource type + a shared common/
+frontend/               Streamlit chat UI — separate deployable, calls /chat only
+  streamlit_app.py
+  components/           branding (theme/fonts), api_client
+  assets/                mark.svg, embedded font files
 .github/workflows/       terraform-plan.yml, terraform-apply.yml
-tests/                   pytest coverage for schema_loader, validators, renderer, orchestrator
+tests/                   pytest coverage for schema_loader, validators, renderer, orchestrator, followups, frontend smoke
 ```

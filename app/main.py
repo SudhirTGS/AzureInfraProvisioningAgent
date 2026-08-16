@@ -25,10 +25,10 @@ def chat(request: ChatRequest) -> ChatResponse:
     session_id, session = session_store.get_or_create(request.session_id)
 
     try:
-        reply, updated_messages = run_turn(session.messages, request.message)
+        reply, updated_messages, followups = run_turn(session.messages, request.message)
     except Exception:
         logger.exception("chat turn failed for session_id=%s", session_id)
         raise HTTPException(status_code=502, detail="The assistant hit an error processing that message.")
 
     session_store.save(session_id, updated_messages)
-    return ChatResponse(session_id=session_id, reply=reply)
+    return ChatResponse(session_id=session_id, reply=reply, suggested_followups=followups)

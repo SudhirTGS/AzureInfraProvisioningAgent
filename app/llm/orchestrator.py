@@ -10,6 +10,7 @@ import json
 import logging
 
 from app.llm.client import create_completion
+from app.llm.followups import derive_followups
 from app.tools.handlers import dispatch
 
 logger = logging.getLogger(__name__)
@@ -17,7 +18,7 @@ logger = logging.getLogger(__name__)
 MAX_TOOL_ITERATIONS = 8
 
 
-def run_turn(messages: list[dict], user_message: str) -> tuple[str, list[dict]]:
+def run_turn(messages: list[dict], user_message: str) -> tuple[str, list[dict], list[str]]:
     messages = [*messages, {"role": "user", "content": user_message}]
 
     for _ in range(MAX_TOOL_ITERATIONS):
@@ -26,7 +27,7 @@ def run_turn(messages: list[dict], user_message: str) -> tuple[str, list[dict]]:
         messages.append(choice.model_dump(exclude_none=True))
 
         if not choice.tool_calls:
-            return choice.content or "", messages
+            return choice.content or "", messages, derive_followups(messages)
 
         for tool_call in choice.tool_calls:
             name = tool_call.function.name
@@ -48,4 +49,5 @@ def run_turn(messages: list[dict], user_message: str) -> tuple[str, list[dict]]:
     return (
         "Sorry, I got stuck working through that request. Could you rephrase or try again?",
         messages,
+        derive_followups(messages),
     )

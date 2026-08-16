@@ -9,3 +9,4 @@ class ChatRequest(BaseModel):
 class ChatResponse(BaseModel):
     session_id: str
     reply: str
+    suggested_followups: list[str] = []

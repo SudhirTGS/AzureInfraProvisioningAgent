@@ -59,13 +59,14 @@ def test_run_turn_executes_tool_call_then_returns_final_reply(monkeypatch):
     monkeypatch.setattr(orchestrator, "create_completion", fake_create_completion)
     monkeypatch.setattr(orchestrator, "dispatch", fake_dispatch)
 
-    reply, messages = orchestrator.run_turn(
+    reply, messages, followups = orchestrator.run_turn(
         [{"role": "system", "content": "sys"}], "I need an Azure SQL database"
     )
 
     assert reply == "Which edition would you like?"
     assert dispatched == [("get_resource_schema", {"resource_type": "azure_sql_database"})]
     assert any(m.get("role") == "tool" for m in messages)
+    assert followups  # get_resource_schema isn't tracked, so falls back to the default suggestions
 
 
 def test_run_turn_stops_at_max_iterations(monkeypatch):
@@ -77,6 +78,6 @@ def test_run_turn_stops_at_max_iterations(monkeypatch):
     monkeypatch.setattr(orchestrator, "create_completion", fake_create_completion)
     monkeypatch.setattr(orchestrator, "dispatch", lambda name, args: {})
 
-    reply, _messages = orchestrator.run_turn([{"role": "system", "content": "sys"}], "hello")
+    reply, _messages, _followups = orchestrator.run_turn([{"role": "system", "content": "sys"}], "hello")
 
     assert "stuck" in reply.lower()
