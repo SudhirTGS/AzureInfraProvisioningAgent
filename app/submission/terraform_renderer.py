@@ -47,10 +47,18 @@ def render_resource(
     templates_dir = settings.terraform_templates_dir
 
     slug = compute_slug(resource_type, normalized_requirements)
+    # The state backend's resource group defaults to the request's own
+    # resource_group when no app-wide TERRAFORM_STATE_RESOURCE_GROUP is
+    # configured, so a single-RG setup doesn't need separate backend config.
+    # The storage account/container still have no per-request equivalent in
+    # the schema and must come from settings.
+    tf_state_resource_group = settings.terraform_state_resource_group or normalized_requirements.get(
+        "resource_group", ""
+    )
     context = {
         **normalized_requirements,
         "azurerm_provider_version": settings.terraform_azurerm_provider_version,
-        "tf_state_resource_group": settings.terraform_state_resource_group,
+        "tf_state_resource_group": tf_state_resource_group,
         "tf_state_storage_account": settings.terraform_state_storage_account,
         "tf_state_container": settings.terraform_state_container,
         "tf_state_key": f"{resource_type}/{slug}.tfstate",
